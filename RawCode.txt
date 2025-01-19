@@ -10,7 +10,7 @@ public:
     pressed = false;
     released = false;
     int state = digitalRead(pin);
-    Serial.println(digitalRead(pin));
+    //Serial.println(digitalRead(pin));
     
     if (state == prevState) return;
     
@@ -49,7 +49,7 @@ private:
 Button buttons[] = { Button(2) };
 Button controlButton = { Button(12) };
 
-int mode = 0; //0 means editing, 1 means reading
+int mode = 1; //0 means editing, 1 means reading
 int numPressed;
 int numDesired;
 
@@ -59,11 +59,15 @@ void setup() {
   Serial.begin(9600);
 }
 
+int startTime;
 void loop() {
+  
   controlButton.update();
   if(mode==1){
+    Serial.println("In Mode 1");
     if(controlButton.isHeld(2000))
       mode = 0;
+      startTime = millis();
     if(numPressed == numDesired)
       digitalWrite(11, HIGH);
     else
@@ -83,17 +87,19 @@ void loop() {
     }
   }
   else{
+    Serial.println("in mode 2");
     if(controlButton.isHeld(2000)){
       mode = 1;
     }
-    int startTime = millis();
-    if(millis<startTime+300) //green light blinks once when entering writing mode and when adding one to desiredAmount
+    if(millis()<startTime+300) //green light blinks once when entering writing mode and when adding one to desiredAmount
       digitalWrite(11, HIGH);
     else
       digitalWrite(11, LOW);
   
-    if(millis()%1000<750) //Red light is constantly blinking to indicate it's in writing mode
+    if(millis()%1000<750){ //Red light is constantly blinking to indicate it's in writing mode
       digitalWrite(10, HIGH);
+      Serial.print("Something's wrong");
+    }
     else
       digitalWrite(10, LOW);
     if(controlButton.isPressed()){
