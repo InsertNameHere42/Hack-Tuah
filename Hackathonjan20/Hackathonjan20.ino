@@ -1,7 +1,6 @@
 class Button {
 public:
   int pin; 
-
   Button(int pin) : pin(pin) {
     pinMode(pin, INPUT_PULLUP);
   }
@@ -14,39 +13,40 @@ public:
     
     if (state == prevState) return;
     
-    if (state == LOW)
+    if (state == LOW){
       pressed = true;
+      pressTime = millis();
+    }
     else
       released = true;
     prevState = state;
   }
-  bool isHeld(int time){
-    if(digitalRead(pin)==LOW){
-      int startTime = millis();
-      while(millis()<startTime+time){
-        if(digitalRead(pin)==HIGH)
-          return false;
-      }
-      return true;
-    }
-    else
-      return false;
-  }
-
   bool isPressed() {
     return pressed;
   }
   bool isReleased() {
     return released;
+    pressTime = -1;
   }
+
+  int getHeldTime() {
+    if (pressTime == -1) return -1;
+    return millis() - pressTime;
+  }
+  void setHeldTime(int time){
+    pressTime = 0;
+  }
+
 private:      
   int prevState;
   bool pressed;
   bool released;
+  int pressTime;
+  int timePressed;
 };
 
 
-Button buttons[] = { Button(2) };
+Button buttons[] = { Button(2), Button(3), Button(4), Button(5), Button(6), Button(7) };
 Button controlButton = { Button(12) };
 
 int mode = 1; //0 means editing, 1 means reading
@@ -64,8 +64,9 @@ void loop() {
   
   controlButton.update();
   if(mode==1){
+    numDesired = 0;
     Serial.println("In Mode 1");
-    if(controlButton.isHeld(2000))
+    if(controlButton.getHeldTime()<=2000)
       mode = 0;
       startTime = millis();
     if(numPressed == numDesired)
@@ -87,8 +88,8 @@ void loop() {
     }
   }
   else{
-    Serial.println("in mode 2");
-    if(controlButton.isHeld(2000)){
+    Serial.println("in mode 0");
+    if(controlButton.getHeldTime()<=2000){
       mode = 1;
     }
     if(millis()<startTime+300) //green light blinks once when entering writing mode and when adding one to desiredAmount
