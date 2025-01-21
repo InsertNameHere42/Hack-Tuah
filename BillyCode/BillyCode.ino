@@ -50,8 +50,16 @@ Button buttons[] = { Button(2), Button(3), Button(4), Button(5), Button(6), Butt
 Button controlButton = { Button(12) };
 
 int mode = 1; //0 means editing, 1 means reading
-int numPressed;
 int numDesired;
+
+int getNumPressed(){
+  int retNum = 0;
+  for(int i = 0; i < sizeof(buttons); i++){
+    if(buttons[i].isPressed())
+      retNum++;
+  }
+  return retNum;
+}
 
 void setup() {
   pinMode(11, OUTPUT); //Green Light
@@ -69,7 +77,7 @@ void loop() {
     if(controlButton.getHeldTime()<=2000)
       mode = 0;
       startTime = millis();
-    if(numPressed == numDesired)
+    if(getNumPressed() == numDesired)
       digitalWrite(11, HIGH);
     else
       digitalWrite(10, HIGH);
@@ -80,10 +88,6 @@ void loop() {
         Serial.print("Button on pin ");
         Serial.print(b.pin);
         Serial.println(" is PRESSED");
-        numPressed++;
-      }
-      if(b.isReleased()){
-        numPressed--;
       }
     }
   }
