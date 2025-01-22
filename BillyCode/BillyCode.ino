@@ -74,7 +74,7 @@ void loop() {
   if(mode==1){
     numDesired = 0;
     Serial.println("In Mode 1");
-    if(controlButton.getHeldTime()<=2000)
+    if(controlButton.getHeldTime()>=2000)
       mode = 0;
       startTime = millis();
     if(getNumPressed() == numDesired)
@@ -93,7 +93,7 @@ void loop() {
   }
   else{
     Serial.println("in mode 0");
-    if(controlButton.getHeldTime()<=2000){
+    if(controlButton.getHeldTime()>=2000){
       mode = 1;
     }
     if(millis()<startTime+300) //green light blinks once when entering writing mode and when adding one to desiredAmount
@@ -103,7 +103,6 @@ void loop() {
   
     if(millis()%1000<750){ //Red light is constantly blinking to indicate it's in writing mode
       digitalWrite(10, HIGH);
-      Serial.print("Something's wrong");
     }
     else
       digitalWrite(10, LOW);
