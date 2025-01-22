@@ -3,6 +3,7 @@ public:
   int pin; 
   Button(int pin) : pin(pin) {
     pinMode(pin, INPUT_PULLUP);
+    pressTime = -1;
   }
 
   void update() {
@@ -13,8 +14,10 @@ public:
     
     if (state == prevState) return;
     
+    
     if (state == LOW){
       pressed = true;
+      Serial.println("Button Pressed");
       pressTime = millis();
     }
     else
@@ -33,9 +36,11 @@ public:
     if (pressTime == -1) return -1;
     return millis() - pressTime;
   }
-  void setHeldTime(int time){
-    pressTime = 0;
+  void resetHeldTime(){
+    released = true;
+    pressTime = -1;
   }
+
 
 private:      
   int prevState;
@@ -54,7 +59,7 @@ int numDesired;
 
 int getNumPressed(){
   int retNum = 0;
-  for(int i = 0; i < sizeof(buttons); i++){
+  for(int i = 0; i < sizeof(buttons)/sizeof(buttons[0]); i++){
     if(buttons[i].isPressed())
       retNum++;
   }
@@ -72,15 +77,25 @@ void loop() {
   
   controlButton.update();
   if(mode==1){
-    numDesired = 0;
-    Serial.println("In Mode 1");
-    if(controlButton.getHeldTime()>=2000)
+    // Serial.print("Num Desired: ");
+    // Serial.println(numDesired);
+    // Serial.print("Num Pressed: ");
+    // Serial.println(getNumPressed());
+    //Serial.println(controlButton.getHeldTime());
+    //Serial.println("In Mode 1");
+    if(controlButton.getHeldTime()>=2000){
       mode = 0;
       startTime = millis();
-    if(getNumPressed() == numDesired)
+      numDesired = 0;
+      controlButton.resetHeldTime();
+    }
+    if(getNumPressed() == numDesired){
       digitalWrite(11, HIGH);
+      digitalWrite(10, LOW);
+    }
     else
       digitalWrite(10, HIGH);
+    
     for (Button b : buttons) {
       b.update();
 
@@ -92,26 +107,26 @@ void loop() {
     }
   }
   else{
-    Serial.println("in mode 0");
+    //Serial.println("in mode 0");
     if(controlButton.getHeldTime()>=2000){
       mode = 1;
+      controlButton.resetHeldTime();
     }
-    if(millis()<startTime+300) //green light blinks once when entering writing mode and when adding one to desiredAmount
+    if(millis()<=startTime+200) //green light blinks once when entering writing mode and when adding one to desiredAmount
       digitalWrite(11, HIGH);
     else
       digitalWrite(11, LOW);
-  
+
     if(millis()%1000<750){ //Red light is constantly blinking to indicate it's in writing mode
       digitalWrite(10, HIGH);
     }
     else
       digitalWrite(10, LOW);
     if(controlButton.isPressed()){
+      Serial.println("num desired up");
       numDesired++;
       startTime = millis();
-
     }
   }
-
   delay(100);
 }
