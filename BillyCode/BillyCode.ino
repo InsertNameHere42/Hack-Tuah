@@ -96,7 +96,7 @@ void loop() {
     else
       digitalWrite(10, HIGH);
     
-    for (Button b : buttons) {
+    for (Button &b : buttons) {
       b.update();
 
       if (b.isPressed()) {
