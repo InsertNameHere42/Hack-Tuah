@@ -33,8 +33,8 @@ public:
     return pressed;
   }
   bool isReleased() {
-    return released;
     pressTime = -1;
+    return released;
   }
   bool isHeld(){
     if(prevState == LOW)
