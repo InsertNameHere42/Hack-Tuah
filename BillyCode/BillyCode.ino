@@ -108,8 +108,10 @@ void loop() {
       digitalWrite(11, HIGH);
       digitalWrite(10, LOW);
     }
-    else
+    else{
+      digitalWrite(11, LOW);
       digitalWrite(10, HIGH);
+    }
     
     for (Button &b : buttons) {
       b.update();
@@ -125,6 +127,7 @@ void loop() {
     //Serial.println("in mode 0");
     if(controlButton.getHeldTime()>=2000){
       mode = 1;
+      numDesired--; //so that holding the button doesn't add one
       controlButton.resetHeldTime();
       controlButton.useHeldAction();
     }
