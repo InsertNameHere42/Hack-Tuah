@@ -1,8 +1,10 @@
+
 class Button {
 public:
   int pin; 
   Button(int pin) : pin(pin) {
     pinMode(pin, INPUT_PULLUP);
+    prevState = HIGH;
     pressTime = -1;
   }
 
@@ -17,6 +19,7 @@ public:
     
     if (state == LOW){
       pressed = true;
+      heldAction = true;
       Serial.println("Button Pressed");
       pressTime = millis();
     }
@@ -24,21 +27,31 @@ public:
       released = true;
     prevState = state;
   }
-  bool isPressed() {
+  bool isPressedOnce() {
+    if (pressed)
+      Serial.println(pressed);
     return pressed;
   }
   bool isReleased() {
     return released;
     pressTime = -1;
   }
+  bool isHeld(){
+    if(prevState == LOW)
+      return true;
+    return false;
+  }
 
   int getHeldTime() {
     if (pressTime == -1) return -1;
-    return millis() - pressTime;
+    if (heldAction) //make sure this can only trigger once per hold
+      return millis() - pressTime;
   }
   void resetHeldTime(){
-    released = true;
     pressTime = -1;
+  }
+  void useHeldAction(){
+    heldAction = false;
   }
 
 
@@ -48,6 +61,7 @@ private:
   bool released;
   int pressTime;
   int timePressed;
+  bool heldAction;
 };
 
 
@@ -60,7 +74,7 @@ int numDesired;
 int getNumPressed(){
   int retNum = 0;
   for(int i = 0; i < sizeof(buttons)/sizeof(buttons[0]); i++){
-    if(buttons[i].isPressed())
+    if(buttons[i].isHeld())
       retNum++;
   }
   return retNum;
@@ -84,6 +98,7 @@ void loop() {
     //Serial.println(controlButton.getHeldTime());
     //Serial.println("In Mode 1");
     if(controlButton.getHeldTime()>=2000){
+      controlButton.useHeldAction();
       mode = 0;
       startTime = millis();
       numDesired = 0;
@@ -96,10 +111,10 @@ void loop() {
     else
       digitalWrite(10, HIGH);
     
-    for (Button b : buttons) {
+    for (Button &b : buttons) {
       b.update();
 
-      if (b.isPressed()) {
+      if (b.isPressedOnce()) {
         Serial.print("Button on pin ");
         Serial.print(b.pin);
         Serial.println(" is PRESSED");
@@ -111,6 +126,7 @@ void loop() {
     if(controlButton.getHeldTime()>=2000){
       mode = 1;
       controlButton.resetHeldTime();
+      controlButton.useHeldAction();
     }
     if(millis()<=startTime+200) //green light blinks once when entering writing mode and when adding one to desiredAmount
       digitalWrite(11, HIGH);
@@ -122,9 +138,16 @@ void loop() {
     }
     else
       digitalWrite(10, LOW);
-    if(controlButton.isPressed()){
-      Serial.println("num desired up");
-      numDesired++;
+    if(controlButton.isPressedOnce()){
+      if(numDesired+1<=sizeof(buttons)/sizeof(buttons[0])){
+        Serial.println("num desired up");
+        numDesired++;
+      }
+      else{
+        Serial.println("Num desired reset");
+        numDesired = 1;
+      }
+      Serial.println(numDesired);
       startTime = millis();
     }
   }
