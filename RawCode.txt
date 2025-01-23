@@ -103,6 +103,8 @@ void loop() {
       startTime = millis();
       numDesired = 0;
       controlButton.resetHeldTime();
+      digitalWrite(11, LOW);
+      digitalWrite(10, LOW);
     }
     if(getNumPressed() == numDesired){
       digitalWrite(11, HIGH);
@@ -130,6 +132,8 @@ void loop() {
       numDesired--; //so that holding the button doesn't add one
       controlButton.resetHeldTime();
       controlButton.useHeldAction();
+      digitalWrite(11, LOW);
+      digitalWrite(10, LOW);
     }
     if(millis()<=startTime+200) //green light blinks once when entering writing mode and when adding one to desiredAmount
       digitalWrite(11, HIGH);
